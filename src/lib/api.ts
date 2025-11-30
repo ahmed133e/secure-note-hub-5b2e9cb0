@@ -31,36 +31,50 @@ class ApiService {
 
   // Authentication
   async register(username: string, password: string): Promise<RegisterResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Registration failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Registration failed');
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new Error('Cannot connect to backend server. Please check if the backend is running and the API URL is configured correctly.');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   async login(username: string, password: string): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Login failed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('username', data.username);
+      return data;
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new Error('Cannot connect to backend server. Please check if the backend is running and the API URL is configured correctly.');
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    localStorage.setItem('authToken', data.token);
-    localStorage.setItem('username', data.username);
-    return data;
   }
 
   logout(): void {
